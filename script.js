@@ -1,15 +1,20 @@
-/* =========================================
+/* =========================================================
    DIGITAL TO PRINTABLE
-   ADVANCED SCRIPT - PART 1
-========================================= */
+   COMPLETE SCRIPT
+========================================================= */
+
+
+/* =========================================================
+   PDF.JS WORKER
+========================================================= */
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
     "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
 
 
-/* =========================================
+/* =========================================================
    VARIABLES
-========================================= */
+========================================================= */
 
 let pdfDocument = null;
 
@@ -22,27 +27,18 @@ let selectedSlideIds = new Set();
 let slideCounter = 0;
 
 
-/* =========================================
+/* =========================================================
    ELEMENTS
-========================================= */
+========================================================= */
 
-const fileInput =
-    document.getElementById("pdfFile");
+const fileInput = document.getElementById("pdfFile");
+const fileName = document.getElementById("fileName");
 
-const fileName =
-    document.getElementById("fileName");
-
-const totalSlides =
-    document.getElementById("totalSlides");
-
-const selectedSlides =
-    document.getElementById("selectedSlides");
-
+const totalSlides = document.getElementById("totalSlides");
+const selectedSlides = document.getElementById("selectedSlides");
 const slidesPerPageInfo =
     document.getElementById("slidesPerPageInfo");
-
-const paperSaving =
-    document.getElementById("paperSaving");
+const paperSaving = document.getElementById("paperSaving");
 
 const slidesContainer =
     document.getElementById("slidesContainer");
@@ -62,6 +58,12 @@ const undoBtn =
 const slidesPerPage =
     document.getElementById("slidesPerPage");
 
+const paperSize =
+    document.getElementById("paperSize");
+
+const orientation =
+    document.getElementById("orientation");
+
 const margin =
     document.getElementById("margin");
 
@@ -74,6 +76,12 @@ const marginValue =
 const spacingValue =
     document.getElementById("spacingValue");
 
+const border =
+    document.getElementById("border");
+
+const previewContainer =
+    document.getElementById("previewContainer");
+
 const generateBtn =
     document.getElementById("generateBtn");
 
@@ -81,36 +89,39 @@ const statusMessage =
     document.getElementById("statusMessage");
 
 
-/* =========================================
-   PDF UPLOAD
-========================================= */
+/* =========================================================
+   INITIAL STATE
+========================================================= */
 
-fileInput.addEventListener(
-    "change",
-    handlePDFUpload
-);
+updateInformation();
+updateGenerateButton();
+updatePreview();
+
+
+/* =========================================================
+   PDF UPLOAD
+========================================================= */
+
+fileInput.addEventListener("change", handlePDFUpload);
 
 
 async function handlePDFUpload(event) {
 
-    const file =
-        event.target.files[0];
+    const file = event.target.files[0];
 
     if (!file) {
         return;
     }
 
 
-    /* Check PDF */
+    /* Check file */
 
     if (
         file.type !== "application/pdf" &&
         !file.name.toLowerCase().endsWith(".pdf")
     ) {
 
-        alert(
-            "Please select a valid PDF file."
-        );
+        alert("Please select a valid PDF file.");
 
         fileInput.value = "";
 
@@ -118,7 +129,7 @@ async function handlePDFUpload(event) {
     }
 
 
-    /* Reset old data */
+    /* Reset */
 
     pdfDocument = null;
 
@@ -131,20 +142,16 @@ async function handlePDFUpload(event) {
     slideCounter = 0;
 
 
-    /* File name */
-
     fileName.textContent =
         "📄 " + file.name;
-
-
-    /* Loading */
 
     statusMessage.textContent =
         "⏳ Loading PDF...";
 
-
     slidesContainer.innerHTML =
         '<div class="loading">Loading PDF...</div>';
+
+    generateBtn.disabled = true;
 
 
     try {
@@ -174,9 +181,27 @@ async function handlePDFUpload(event) {
         await renderAllSlides();
 
 
+        /*
+         * Automatically select every slide
+         * after PDF upload.
+         */
+
+        slides.forEach(slide => {
+
+            selectedSlideIds.add(
+                slide.id
+            );
+
+        });
+
+
+        updateSlideVisuals();
+
         updateInformation();
 
         updateGenerateButton();
+
+        updatePreview();
 
 
         statusMessage.textContent =
@@ -187,8 +212,17 @@ async function handlePDFUpload(event) {
 
         console.error(error);
 
+        pdfDocument = null;
+
+        slides = [];
+
+        selectedSlideIds.clear();
+
         slidesContainer.innerHTML =
             '<div class="empty-message">Unable to read this PDF.</div>';
+
+        previewContainer.innerHTML =
+            '<div class="empty-message">Print preview will appear here.</div>';
 
         statusMessage.textContent =
             "❌ PDF could not be loaded.";
@@ -200,14 +234,13 @@ async function handlePDFUpload(event) {
 }
 
 
-/* =========================================
+/* =========================================================
    RENDER ALL SLIDES
-========================================= */
+========================================================= */
 
 async function renderAllSlides() {
 
     slidesContainer.innerHTML = "";
-
 
     for (
         let pageNumber = 1;
@@ -220,9 +253,9 @@ async function renderAllSlides() {
 }
 
 
-/* =========================================
+/* =========================================================
    RENDER SINGLE SLIDE
-========================================= */
+========================================================= */
 
 async function renderSlide(pageNumber) {
 
@@ -236,16 +269,7 @@ async function renderSlide(pageNumber) {
         });
 
 
-    const canvas =
-        document.createElement("canvas");
-
-
-    const context =
-        canvas.getContext("2d");
-
-
-    const maxWidth = 300;
-
+    const maxWidth = 500;
 
     const scale =
         Math.min(
@@ -260,11 +284,19 @@ async function renderSlide(pageNumber) {
         });
 
 
+    const canvas =
+        document.createElement("canvas");
+
+
+    const context =
+        canvas.getContext("2d");
+
+
     canvas.width =
-        scaledViewport.width;
+        Math.ceil(scaledViewport.width);
 
     canvas.height =
-        scaledViewport.height;
+        Math.ceil(scaledViewport.height);
 
 
     await page.render({
@@ -275,8 +307,6 @@ async function renderSlide(pageNumber) {
 
     }).promise;
 
-
-    /* Slide object */
 
     const slide = {
 
@@ -291,24 +321,21 @@ async function renderSlide(pageNumber) {
 
     slides.push(slide);
 
-
     createSlideCard(slide);
 }
 
 
-/* =========================================
+/* =========================================================
    CREATE SLIDE CARD
-========================================= */
+========================================================= */
 
 function createSlideCard(slide) {
 
     const card =
         document.createElement("div");
 
-
     card.className =
         "slide-card";
-
 
     card.dataset.id =
         slide.id;
@@ -317,10 +344,8 @@ function createSlideCard(slide) {
     const check =
         document.createElement("div");
 
-
     check.className =
         "slide-check";
-
 
     check.textContent =
         "✓";
@@ -329,14 +354,11 @@ function createSlideCard(slide) {
     const number =
         document.createElement("div");
 
-
     number.className =
         "slide-number";
 
-
     number.textContent =
-        "Slide " +
-        slide.pageNumber;
+        "Slide " + slide.pageNumber;
 
 
     card.appendChild(check);
@@ -348,7 +370,11 @@ function createSlideCard(slide) {
 
     card.addEventListener(
         "click",
-        () => toggleSlide(slide.id)
+        function () {
+
+            toggleSlide(slide.id);
+
+        }
     );
 
 
@@ -356,15 +382,13 @@ function createSlideCard(slide) {
 }
 
 
-/* =========================================
+/* =========================================================
    TOGGLE SLIDE
-========================================= */
+========================================================= */
 
 function toggleSlide(id) {
 
-    if (
-        selectedSlideIds.has(id)
-    ) {
+    if (selectedSlideIds.has(id)) {
 
         selectedSlideIds.delete(id);
 
@@ -379,12 +403,14 @@ function toggleSlide(id) {
     updateInformation();
 
     updateGenerateButton();
+
+    updatePreview();
 }
 
 
-/* =========================================
+/* =========================================================
    UPDATE SLIDE VISUALS
-========================================= */
+========================================================= */
 
 function updateSlideVisuals() {
 
@@ -400,28 +426,22 @@ function updateSlideVisuals() {
             Number(card.dataset.id);
 
 
-        if (
-            selectedSlideIds.has(id)
-        ) {
+        if (selectedSlideIds.has(id)) {
 
-            card.classList.add(
-                "selected"
-            );
+            card.classList.add("selected");
 
         } else {
 
-            card.classList.remove(
-                "selected"
-            );
+            card.classList.remove("selected");
         }
 
     });
 }
 
 
-/* =========================================
+/* =========================================================
    SELECT ALL
-========================================= */
+========================================================= */
 
 selectAllBtn.addEventListener(
     "click",
@@ -448,12 +468,14 @@ function selectAllSlides() {
     updateInformation();
 
     updateGenerateButton();
+
+    updatePreview();
 }
 
 
-/* =========================================
+/* =========================================================
    CLEAR ALL
-========================================= */
+========================================================= */
 
 clearAllBtn.addEventListener(
     "click",
@@ -471,12 +493,14 @@ function clearAllSlides() {
     updateInformation();
 
     updateGenerateButton();
+
+    updatePreview();
 }
 
 
-/* =========================================
+/* =========================================================
    DELETE SELECTED
-========================================= */
+========================================================= */
 
 deleteBtn.addEventListener(
     "click",
@@ -486,9 +510,7 @@ deleteBtn.addEventListener(
 
 function deleteSelectedSlides() {
 
-    if (
-        selectedSlideIds.size === 0
-    ) {
+    if (selectedSlideIds.size === 0) {
 
         alert(
             "Please select slides to delete."
@@ -528,15 +550,17 @@ function deleteSelectedSlides() {
 
     updateGenerateButton();
 
+    updatePreview();
+
 
     statusMessage.textContent =
         "🗑️ Selected slides deleted.";
 }
 
 
-/* =========================================
-   UNDO DELETE
-========================================= */
+/* =========================================================
+   UNDO
+========================================================= */
 
 undoBtn.addEventListener(
     "click",
@@ -546,9 +570,7 @@ undoBtn.addEventListener(
 
 function undoDelete() {
 
-    if (
-        deletedHistory.length === 0
-    ) {
+    if (deletedHistory.length === 0) {
 
         alert(
             "Nothing to undo."
@@ -569,8 +591,7 @@ function undoDelete() {
 
     slides.sort(
         (a, b) =>
-            a.pageNumber -
-            b.pageNumber
+            a.pageNumber - b.pageNumber
     );
 
 
@@ -580,15 +601,17 @@ function undoDelete() {
 
     updateGenerateButton();
 
+    updatePreview();
+
 
     statusMessage.textContent =
         "↩️ Delete undone.";
 }
 
 
-/* =========================================
+/* =========================================================
    REDRAW SLIDES
-========================================= */
+========================================================= */
 
 function redrawSlides() {
 
@@ -607,12 +630,15 @@ function redrawSlides() {
     slides.forEach(
         createSlideCard
     );
+
+
+    updateSlideVisuals();
 }
 
 
-/* =========================================
+/* =========================================================
    INFORMATION
-========================================= */
+========================================================= */
 
 function updateInformation() {
 
@@ -630,93 +656,42 @@ function updateInformation() {
         perPage;
 
 
-    if (slides.length > 0) {
-
-        const originalPages =
-            slides.length;
-
-
-        const printablePages =
-            Math.ceil(
-                slides.length /
-                perPage
-            );
-
-
-        const saving =
-            Math.max(
-                0,
-                Math.round(
-                    (
-                        1 -
-                        printablePages /
-                        originalPages
-                    ) * 100
-                )
-            );
-
-
-        paperSaving.textContent =
-            saving + "%";
-
-    } else {
+    if (slides.length === 0) {
 
         paperSaving.textContent =
             "0%";
+
+        return;
     }
+
+
+    const printablePages =
+        Math.ceil(
+            slides.length / perPage
+        );
+
+
+    const saving =
+        Math.max(
+            0,
+            Math.round(
+                (
+                    1 -
+                    printablePages /
+                    slides.length
+                ) * 100
+            )
+        );
+
+
+    paperSaving.textContent =
+        saving + "%";
 }
 
 
-/* =========================================
-   SLIDES PER PAGE
-========================================= */
-
-slidesPerPage.addEventListener(
-    "change",
-    () => {
-
-        updateInformation();
-
-        updatePreview();
-    }
-);
-
-
-/* =========================================
-   MARGIN
-========================================= */
-
-margin.addEventListener(
-    "input",
-    () => {
-
-        marginValue.textContent =
-            margin.value;
-
-        updatePreview();
-    }
-);
-
-
-/* =========================================
-   SPACING
-========================================= */
-
-spacing.addEventListener(
-    "input",
-    () => {
-
-        spacingValue.textContent =
-            spacing.value;
-
-        updatePreview();
-    }
-);
-
-
-/* =========================================
+/* =========================================================
    GENERATE BUTTON
-========================================= */
+========================================================= */
 
 function updateGenerateButton() {
 
@@ -726,366 +701,103 @@ function updateGenerateButton() {
 }
 
 
-/* =========================================
-   INITIAL STATE
-========================================= */
+/* =========================================================
+   SETTINGS EVENTS
+========================================================= */
 
-updateInformation();
+slidesPerPage.addEventListener(
+    "change",
+    function () {
 
-updateGenerateButton();
+        updateInformation();
+        updatePreview();
 
-
-/* =========================================
-   PREVIEW
-========================================= */
-
-function updatePreview() {
-
-    const preview =
-        document.getElementById(
-            "previewContainer"
-        );
-
-
-    if (
-        slides.length === 0 ||
-        selectedSlideIds.size === 0
-    ) {
-
-        preview.innerHTML =
-            '<div class="empty-message">Print preview will appear here.</div>';
-
-        return;
     }
-
-
-    const perPage =
-        Number(
-            slidesPerPage.value
-        );
-
-
-    const selectedSlides =
-        slides.filter(slide =>
-            selectedSlideIds.has(
-                slide.id
-            )
-        );
-
-
-    preview.innerHTML = "";
-
-
-    const pageCount =
-        Math.ceil(
-            selectedSlides.length /
-            perPage
-        );
-
-
-    const info =
-        document.createElement("div");
-
-
-    info.className =
-        "empty-message";
-
-
-    info.textContent =
-        `Preview: ${pageCount} printable page(s)`;
-
-    preview.appendChild(info);
-}
-/* =========================================
-   PDF GENERATION ENGINE
-========================================= */
-
-generateBtn.addEventListener(
-    "click",
-    generatePrintablePDF
 );
 
 
-async function generatePrintablePDF() {
+margin.addEventListener(
+    "input",
+    function () {
 
-    if (
-        slides.length === 0 ||
-        selectedSlideIds.size === 0
-    ) {
+        marginValue.textContent =
+            margin.value;
 
-        alert(
-            "Please upload a PDF and select at least one slide."
+        updatePreview();
+
+    }
+);
+
+
+spacing.addEventListener(
+    "input",
+    function () {
+
+        spacingValue.textContent =
+            spacing.value;
+
+        updatePreview();
+
+    }
+);
+
+
+paperSize.addEventListener(
+    "change",
+    updatePreview
+);
+
+
+orientation.addEventListener(
+    "change",
+    updatePreview
+);
+
+
+border.addEventListener(
+    "change",
+    updatePreview
+);
+
+
+document
+    .querySelectorAll(
+        'input[name="printMode"]'
+    )
+    .forEach(input => {
+
+        input.addEventListener(
+            "change",
+            updatePreview
         );
 
-        return;
+    });
+
+
+/* =========================================================
+   GET PRINT MODE
+========================================================= */
+
+function getPrintMode() {
+
+    const selected =
+        document.querySelector(
+            'input[name="printMode"]:checked'
+        );
+
+
+    if (!selected) {
+        return "color";
     }
 
 
-    generateBtn.disabled = true;
-
-    statusMessage.textContent =
-        "⏳ Creating printable PDF...";
-
-
-    try {
-
-        const {
-            jsPDF
-        } = window.jspdf;
-
-
-        /* ================================
-           SETTINGS
-        ================================= */
-
-        const selectedSlides =
-            slides.filter(slide =>
-                selectedSlideIds.has(
-                    slide.id
-                )
-            );
-
-
-        const perPage =
-            Number(
-                slidesPerPage.value
-            );
-
-
-        const selectedPaper =
-            document.getElementById(
-                "paperSize"
-            ).value;
-
-
-        const selectedOrientation =
-            document.getElementById(
-                "orientation"
-            ).value;
-
-
-        const marginMM =
-            Number(
-                margin.value
-            );
-
-
-        const spacingMM =
-            Number(
-                spacing.value
-            );
-
-
-        const borderEnabled =
-            document.getElementById(
-                "border"
-            ).checked;
-
-
-        const printMode =
-            document.querySelector(
-                'input[name="printMode"]:checked'
-            ).value;
-
-
-        /* ================================
-           CREATE PDF
-        ================================= */
-
-        const pdf =
-            new jsPDF({
-
-                orientation:
-                    selectedOrientation,
-
-                unit: "mm",
-
-                format:
-                    selectedPaper,
-
-                compress: true
-
-            });
-
-
-        /* ================================
-           PAGE SIZE
-        ================================= */
-
-        const pageWidth =
-            pdf.internal.pageSize.getWidth();
-
-
-        const pageHeight =
-            pdf.internal.pageSize.getHeight();
-
-
-        /* ================================
-           GRID
-        ================================= */
-
-        const grid =
-            getGrid(perPage);
-
-
-        const columns =
-            grid.columns;
-
-
-        const rows =
-            grid.rows;
-
-
-        const availableWidth =
-            pageWidth -
-            marginMM * 2;
-
-
-        const availableHeight =
-            pageHeight -
-            marginMM * 2;
-
-
-        const totalSpacingX =
-            spacingMM *
-            (columns - 1);
-
-
-        const totalSpacingY =
-            spacingMM *
-            (rows - 1);
-
-
-        const cellWidth =
-            (
-                availableWidth -
-                totalSpacingX
-            ) / columns;
-
-
-        const cellHeight =
-            (
-                availableHeight -
-                totalSpacingY
-            ) / rows;
-
-
-        /* ================================
-           SLIDES
-        ================================= */
-
-        for (
-            let i = 0;
-            i < selectedSlides.length;
-            i++
-        ) {
-
-            const position =
-                i % perPage;
-
-
-            if (
-                position === 0 &&
-                i !== 0
-            ) {
-
-                pdf.addPage();
-            }
-
-
-            const row =
-                Math.floor(
-                    position /
-                    columns
-                );
-
-
-            const column =
-                position %
-                columns;
-
-
-            const x =
-                marginMM +
-                column *
-                (
-                    cellWidth +
-                    spacingMM
-                );
-
-
-            const y =
-                marginMM +
-                row *
-                (
-                    cellHeight +
-                    spacingMM
-                );
-
-
-            await addSlideToPDF({
-
-                pdf,
-
-                slide:
-                    selectedSlides[i],
-
-                x,
-
-                y,
-
-                width:
-                    cellWidth,
-
-                height:
-                    cellHeight,
-
-                borderEnabled,
-
-                printMode
-
-            });
-
-        }
-
-
-        /* ================================
-           DOWNLOAD
-        ================================= */
-
-        const fileName =
-            "Digital-To-Printable.pdf";
-
-
-        pdf.save(fileName);
-
-
-        statusMessage.textContent =
-            "✅ Printable PDF created successfully.";
-
-
-    } catch (error) {
-
-        console.error(error);
-
-        statusMessage.textContent =
-            "❌ PDF generation failed.";
-
-        alert(
-            "Something went wrong while creating the PDF."
-        );
-
-    } finally {
-
-        generateBtn.disabled =
-            false;
-    }
+    return selected.value;
 }
 
 
-/* =========================================
-   GRID CALCULATION
-========================================= */
+/* =========================================================
+   GRID
+========================================================= */
 
 function getGrid(perPage) {
 
@@ -1129,16 +841,565 @@ function getGrid(perPage) {
     };
 
 
-    return (
-        grids[perPage] ||
-        grids[1]
-    );
+    return grids[perPage] || grids[1];
 }
 
 
-/* =========================================
+/* =========================================================
+   VISUAL PRINT PREVIEW
+========================================================= */
+
+function updatePreview() {
+
+    previewContainer.innerHTML = "";
+
+
+    if (
+        slides.length === 0 ||
+        selectedSlideIds.size === 0
+    ) {
+
+        previewContainer.innerHTML =
+            '<div class="empty-message">Print preview will appear here.</div>';
+
+        return;
+    }
+
+
+    const selected =
+        slides.filter(slide =>
+            selectedSlideIds.has(
+                slide.id
+            )
+        );
+
+
+    const perPage =
+        Number(
+            slidesPerPage.value
+        );
+
+
+    const grid =
+        getGrid(perPage);
+
+
+    const mode =
+        getPrintMode();
+
+
+    const marginMM =
+        Number(margin.value);
+
+
+    const spacingMM =
+        Number(spacing.value);
+
+
+    const borderEnabled =
+        border.checked;
+
+
+    const pageCount =
+        Math.ceil(
+            selected.length / perPage
+        );
+
+
+    /*
+     * Create preview pages.
+     */
+
+    for (
+        let pageIndex = 0;
+        pageIndex < pageCount;
+        pageIndex++
+    ) {
+
+        const paper =
+            document.createElement("div");
+
+        paper.className =
+            "preview-paper";
+
+
+        paper.dataset.paper =
+            paperSize.value.toLowerCase();
+
+
+        paper.dataset.orientation =
+            orientation.value;
+
+
+        const gridElement =
+            document.createElement("div");
+
+        gridElement.className =
+            "preview-grid";
+
+
+        gridElement.style.gridTemplateColumns =
+            `repeat(${grid.columns}, 1fr)`;
+
+
+        gridElement.style.gridTemplateRows =
+            `repeat(${grid.rows}, 1fr)`;
+
+
+        /*
+         * Use proportional values for
+         * margin and spacing.
+         */
+
+        const marginPercent =
+            Math.min(
+                12,
+                Math.max(
+                    1,
+                    marginMM * 0.55
+                )
+            );
+
+
+        const spacingPercent =
+            Math.min(
+                8,
+                Math.max(
+                    0,
+                    spacingMM * 0.45
+                )
+            );
+
+
+        gridElement.style.padding =
+            marginPercent + "%";
+
+
+        gridElement.style.gap =
+            spacingPercent + "%";
+
+
+        const start =
+            pageIndex * perPage;
+
+
+        const end =
+            Math.min(
+                start + perPage,
+                selected.length
+            );
+
+
+        for (
+            let i = start;
+            i < end;
+            i++
+        ) {
+
+            const slide =
+                selected[i];
+
+
+            const item =
+                document.createElement("div");
+
+
+            item.className =
+                "preview-slide";
+
+
+            if (borderEnabled) {
+
+                item.classList.add(
+                    "preview-border"
+                );
+            }
+
+
+            const canvas =
+                document.createElement("canvas");
+
+
+            canvas.width =
+                slide.canvas.width;
+
+            canvas.height =
+                slide.canvas.height;
+
+
+            const context =
+                canvas.getContext("2d");
+
+
+            context.fillStyle =
+                "#ffffff";
+
+
+            context.fillRect(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+
+
+            if (mode === "bw") {
+
+                /*
+                 * Real grayscale pixels
+                 * for preview.
+                 */
+
+                const source =
+                    slide.canvas;
+
+
+                context.drawImage(
+                    source,
+                    0,
+                    0
+                );
+
+
+                const imageData =
+                    context.getImageData(
+                        0,
+                        0,
+                        canvas.width,
+                        canvas.height
+                    );
+
+
+                convertImageDataToGrayscale(
+                    imageData
+                );
+
+
+                context.putImageData(
+                    imageData,
+                    0,
+                    0
+                );
+
+            } else {
+
+                context.drawImage(
+                    slide.canvas,
+                    0,
+                    0
+                );
+            }
+
+
+            item.appendChild(canvas);
+
+            gridElement.appendChild(item);
+        }
+
+
+        paper.appendChild(
+            gridElement
+        );
+
+
+        previewContainer.appendChild(
+            paper
+        );
+    }
+}
+
+
+/* =========================================================
+   GRAYSCALE
+========================================================= */
+
+function convertImageDataToGrayscale(
+    imageData
+) {
+
+    const data =
+        imageData.data;
+
+
+    for (
+        let i = 0;
+        i < data.length;
+        i += 4
+    ) {
+
+        const gray =
+            Math.round(
+                0.299 * data[i] +
+                0.587 * data[i + 1] +
+                0.114 * data[i + 2]
+            );
+
+
+        data[i] =
+            gray;
+
+        data[i + 1] =
+            gray;
+
+        data[i + 2] =
+            gray;
+    }
+}
+
+
+/* =========================================================
+   GENERATE PRINTABLE PDF
+========================================================= */
+
+generateBtn.addEventListener(
+    "click",
+    generatePrintablePDF
+);
+
+
+async function generatePrintablePDF() {
+
+    if (
+        slides.length === 0 ||
+        selectedSlideIds.size === 0
+    ) {
+
+        alert(
+            "Please upload a PDF and select at least one slide."
+        );
+
+        return;
+    }
+
+
+    generateBtn.disabled = true;
+
+
+    statusMessage.textContent =
+        "⏳ Creating printable PDF...";
+
+
+    try {
+
+        const jsPDF =
+            window.jspdf.jsPDF;
+
+
+        const selected =
+            slides.filter(slide =>
+                selectedSlideIds.has(
+                    slide.id
+                )
+            );
+
+
+        const perPage =
+            Number(
+                slidesPerPage.value
+            );
+
+
+        const format =
+            paperSize.value === "LETTER"
+                ? "letter"
+                : paperSize.value.toLowerCase();
+
+
+        const pdf =
+            new jsPDF({
+
+                orientation:
+                    orientation.value,
+
+                unit:
+                    "mm",
+
+                format:
+                    format,
+
+                compress:
+                    true
+            });
+
+
+        const pageWidth =
+            pdf.internal.pageSize.getWidth();
+
+
+        const pageHeight =
+            pdf.internal.pageSize.getHeight();
+
+
+        const marginMM =
+            Number(margin.value);
+
+
+        const spacingMM =
+            Number(spacing.value);
+
+
+        const borderEnabled =
+            border.checked;
+
+
+        const mode =
+            getPrintMode();
+
+
+        const grid =
+            getGrid(perPage);
+
+
+        const columns =
+            grid.columns;
+
+
+        const rows =
+            grid.rows;
+
+
+        const usableWidth =
+            pageWidth -
+            (marginMM * 2);
+
+
+        const usableHeight =
+            pageHeight -
+            (marginMM * 2);
+
+
+        const cellWidth =
+            (
+                usableWidth -
+                spacingMM * (columns - 1)
+            ) / columns;
+
+
+        const cellHeight =
+            (
+                usableHeight -
+                spacingMM * (rows - 1)
+            ) / rows;
+
+
+        /*
+         * Add slides.
+         */
+
+        for (
+            let i = 0;
+            i < selected.length;
+            i++
+        ) {
+
+            const position =
+                i % perPage;
+
+
+            /*
+             * New page.
+             */
+
+            if (
+                i > 0 &&
+                position === 0
+            ) {
+
+                pdf.addPage();
+            }
+
+
+            const row =
+                Math.floor(
+                    position / columns
+                );
+
+
+            const column =
+                position % columns;
+
+
+            const x =
+                marginMM +
+                column *
+                (
+                    cellWidth +
+                    spacingMM
+                );
+
+
+            const y =
+                marginMM +
+                row *
+                (
+                    cellHeight +
+                    spacingMM
+                );
+
+
+            await addSlideToPDF({
+
+                pdf:
+                    pdf,
+
+                slide:
+                    selected[i],
+
+                x:
+                    x,
+
+                y:
+                    y,
+
+                width:
+                    cellWidth,
+
+                height:
+                    cellHeight,
+
+                borderEnabled:
+                    borderEnabled,
+
+                printMode:
+                    mode
+            });
+        }
+
+
+        /*
+         * Save.
+         */
+
+        pdf.save(
+            "Digital-To-Printable.pdf"
+        );
+
+
+        statusMessage.textContent =
+            "✅ Printable PDF created successfully.";
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        statusMessage.textContent =
+            "❌ PDF generation failed.";
+
+        alert(
+            "PDF generation failed. Please try again."
+        );
+
+    } finally {
+
+        generateBtn.disabled = false;
+    }
+}
+
+
+/* =========================================================
    ADD SLIDE TO PDF
-========================================= */
+========================================================= */
 
 async function addSlideToPDF({
 
@@ -1153,86 +1414,95 @@ async function addSlideToPDF({
 
 }) {
 
-    const canvas =
+    const source =
         slide.canvas;
 
 
-    /* ================================
-       CREATE TEMP CANVAS
-    ================================= */
+    const canvas =
+        document.createElement("canvas");
 
-    const tempCanvas =
-        document.createElement(
-            "canvas"
-        );
+
+    canvas.width =
+        source.width;
+
+    canvas.height =
+        source.height;
 
 
     const context =
-        tempCanvas.getContext(
-            "2d"
-        );
+        canvas.getContext("2d");
 
 
-    tempCanvas.width =
-        canvas.width;
-
-    tempCanvas.height =
-        canvas.height;
-
-
-    /* ================================
-       WHITE BACKGROUND
-    ================================= */
+    /*
+     * White background.
+     */
 
     context.fillStyle =
         "#ffffff";
 
+
     context.fillRect(
         0,
         0,
-        tempCanvas.width,
-        tempCanvas.height
+        canvas.width,
+        canvas.height
     );
 
 
-    /* ================================
-       COLOR / B&W
-    ================================= */
-
-    if (
-        printMode === "bw"
-    ) {
-
-        context.filter =
-            "grayscale(100%)";
-    }
-
+    /*
+     * Draw source.
+     */
 
     context.drawImage(
-        canvas,
+        source,
         0,
         0
     );
 
 
-    context.filter =
-        "none";
+    /*
+     * Convert to grayscale
+     * if B&W is selected.
+     */
+
+    if (printMode === "bw") {
+
+        const imageData =
+            context.getImageData(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
 
 
-    const imageData =
-        tempCanvas.toDataURL(
-            "image/jpeg",
-            0.92
+        convertImageDataToGrayscale(
+            imageData
         );
 
 
-    /* ================================
-       KEEP ASPECT RATIO
-    ================================= */
+        context.putImageData(
+            imageData,
+            0,
+            0
+        );
+    }
+
+
+    const imageData =
+        canvas.toDataURL(
+            "image/jpeg",
+            0.90
+        );
+
+
+    /*
+     * Maintain aspect ratio.
+     */
 
     const imageRatio =
-        tempCanvas.width /
-        tempCanvas.height;
+        canvas.width /
+        canvas.height;
 
 
     const boxRatio =
@@ -1253,14 +1523,12 @@ async function addSlideToPDF({
     ) {
 
         finalHeight =
-            width /
-            imageRatio;
+            width / imageRatio;
 
     } else {
 
         finalWidth =
-            height *
-            imageRatio;
+            height * imageRatio;
     }
 
 
@@ -1280,9 +1548,9 @@ async function addSlideToPDF({
         ) / 2;
 
 
-    /* ================================
-       ADD IMAGE
-    ================================= */
+    /*
+     * Add image.
+     */
 
     pdf.addImage(
 
@@ -1301,21 +1569,21 @@ async function addSlideToPDF({
         undefined,
 
         "FAST"
-
     );
 
 
-    /* ================================
-       BORDER
-    ================================= */
+    /*
+     * Border.
+     */
 
     if (borderEnabled) {
 
         pdf.setDrawColor(
-            120,
-            120,
-            120
+            100,
+            100,
+            100
         );
+
 
         pdf.setLineWidth(
             0.3
@@ -1330,266 +1598,3 @@ async function addSlideToPDF({
         );
     }
 }
-/* =========================================
-   ADVANCED VISUAL PRINT PREVIEW
-========================================= */
-
-function createVisualPreview() {
-
-    const preview =
-        document.getElementById("previewContainer");
-
-    preview.innerHTML = "";
-
-    if (
-        slides.length === 0 ||
-        selectedSlideIds.size === 0
-    ) {
-        preview.innerHTML =
-            '<div class="empty-message">Print preview will appear here.</div>';
-
-        return;
-    }
-
-    const perPage =
-        Number(slidesPerPage.value);
-
-    const selected =
-        slides.filter(slide =>
-            selectedSlideIds.has(slide.id)
-        );
-
-    const grid =
-        getGrid(perPage);
-
-    const paper =
-        document.getElementById("paperSize").value;
-
-    const orientation =
-        document.getElementById("orientation").value;
-
-    const marginSize =
-        Number(margin.value);
-
-    const spacingSize =
-        Number(spacing.value);
-
-    const borderEnabled =
-        document.getElementById("border").checked;
-
-    /* Preview paper */
-
-    const paperElement =
-        document.createElement("div");
-
-    paperElement.className =
-        "preview-paper";
-
-    if (paper === "A4") {
-        paperElement.dataset.paper = "a4";
-    }
-
-    if (paper === "A5") {
-        paperElement.dataset.paper = "a5";
-    }
-
-    if (paper === "LETTER") {
-        paperElement.dataset.paper = "letter";
-    }
-
-    paperElement.dataset.orientation =
-        orientation;
-
-    /* Grid */
-
-    const gridElement =
-        document.createElement("div");
-
-    gridElement.className =
-        "preview-grid";
-
-    gridElement.style.gridTemplateColumns =
-        `repeat(${grid.columns}, 1fr)`;
-
-    gridElement.style.gridTemplateRows =
-        `repeat(${grid.rows}, 1fr)`;
-
-    gridElement.style.gap =
-        Math.max(
-            2,
-            spacingSize
-        ) + "px";
-
-    gridElement.style.padding =
-        Math.max(
-            5,
-            marginSize
-        ) + "px";
-
-
-    selected.forEach(slide => {
-
-        const item =
-            document.createElement("div");
-
-        item.className =
-            "preview-slide";
-
-        if (borderEnabled) {
-            item.classList.add(
-                "preview-border"
-            );
-        }
-
-        const image =
-            document.createElement("canvas");
-
-        image.width =
-            slide.canvas.width;
-
-        image.height =
-            slide.canvas.height;
-
-        const ctx =
-            image.getContext("2d");
-
-        ctx.drawImage(
-            slide.canvas,
-            0,
-            0
-        );
-
-        item.appendChild(image);
-
-        gridElement.appendChild(item);
-    });
-
-    paperElement.appendChild(
-        gridElement
-    );
-
-    preview.appendChild(
-        paperElement
-    );
-}
-
-
-/* =========================================
-   PREVIEW EVENTS
-========================================= */
-
-slidesPerPage.addEventListener(
-    "change",
-    createVisualPreview
-);
-
-margin.addEventListener(
-    "input",
-    createVisualPreview
-);
-
-spacing.addEventListener(
-    "input",
-    createVisualPreview
-);
-
-
-document
-    .getElementById("paperSize")
-    .addEventListener(
-        "change",
-        createVisualPreview
-    );
-
-
-document
-    .getElementById("orientation")
-    .addEventListener(
-        "change",
-        createVisualPreview
-    );
-
-
-document
-    .getElementById("border")
-    .addEventListener(
-        "change",
-        createVisualPreview
-    );
-
-
-document
-    .querySelectorAll(
-        'input[name="printMode"]'
-    )
-    .forEach(input => {
-
-        input.addEventListener(
-            "change",
-            createVisualPreview
-        );
-
-    });
-
-
-/* =========================================
-   UPDATE PREVIEW AFTER SELECTION
-========================================= */
-
-const originalToggleSlide =
-    toggleSlide;
-
-toggleSlide = function(id) {
-
-    originalToggleSlide(id);
-
-    createVisualPreview();
-};
-
-
-/* =========================================
-   UPDATE PREVIEW AFTER DELETE
-========================================= */
-
-const originalDeleteSelectedSlides =
-    deleteSelectedSlides;
-
-deleteSelectedSlides = function() {
-
-    originalDeleteSelectedSlides();
-
-    setTimeout(
-        createVisualPreview,
-        50
-    );
-};
-
-
-/* =========================================
-   UPDATE PREVIEW AFTER SELECT ALL
-========================================= */
-
-const originalSelectAllSlides =
-    selectAllSlides;
-
-selectAllSlides = function() {
-
-    originalSelectAllSlides();
-
-    createVisualPreview();
-};
-
-
-/* =========================================
-   UPDATE PREVIEW AFTER CLEAR ALL
-========================================= */
-
-const originalClearAllSlides =
-    clearAllSlides;
-
-clearAllSlides = function() {
-
-    originalClearAllSlides();
-
-    createVisualPreview();
-};
