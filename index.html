@@ -1,77 +1,1154 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
+
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Digital To Printable</title>
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
 
-    <link rel="stylesheet" href="style.css">
+    <meta
+        name="theme-color"
+        content="#2563eb"
+    >
+
+    <title>
+        Digital To Printable
+    </title>
+
+
+    <!-- =================================================
+         BASIC PAGE STYLE
+    ================================================== -->
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+
+        body {
+
+            margin: 0;
+
+            padding: 0;
+
+            font-family:
+                Arial,
+                Helvetica,
+                sans-serif;
+
+            background:
+                #f1f5f9;
+
+            color:
+                #172033;
+        }
+
+
+        .app {
+
+            width: 100%;
+
+            max-width: 900px;
+
+            margin: auto;
+
+            padding: 18px;
+        }
+
+
+        /* =============================================
+           HEADER
+        ============================================= */
+
+        .header {
+
+            text-align: center;
+
+            padding: 20px 10px;
+
+            margin-bottom: 18px;
+        }
+
+
+        .header h1 {
+
+            margin: 0;
+
+            font-size: 30px;
+
+            font-weight: 800;
+        }
+
+
+        .header p {
+
+            margin:
+                8px 0 0;
+
+            color:
+                #64748b;
+
+            font-size: 14px;
+        }
+
+
+        /* =============================================
+           CARD
+        ============================================= */
+
+        .card {
+
+            background:
+                #ffffff;
+
+            border:
+                1px solid #e2e8f0;
+
+            border-radius:
+                22px;
+
+            padding:
+                20px;
+
+            margin-bottom:
+                18px;
+
+            box-shadow:
+                0 8px 25px
+                rgba(15, 23, 42, 0.06);
+        }
+
+
+        .card-title {
+
+            font-size:
+                22px;
+
+            font-weight:
+                800;
+
+            margin:
+                0 0 18px;
+        }
+
+
+        /* =============================================
+           UPLOAD
+        ============================================= */
+
+        .upload-box {
+
+            border:
+                2px dashed #94a3b8;
+
+            border-radius:
+                18px;
+
+            padding:
+                28px 18px;
+
+            text-align:
+                center;
+
+            background:
+                #f8fafc;
+        }
+
+
+        .upload-icon {
+
+            font-size:
+                45px;
+
+            margin-bottom:
+                10px;
+        }
+
+
+        .upload-box h2 {
+
+            margin:
+                5px 0;
+
+            font-size:
+                20px;
+        }
+
+
+        .upload-box p {
+
+            color:
+                #64748b;
+
+            font-size:
+                14px;
+
+            margin:
+                8px 0 18px;
+        }
+
+
+        .upload-button {
+
+            display:
+                inline-block;
+
+            background:
+                #2563eb;
+
+            color:
+                #ffffff;
+
+            padding:
+                13px 22px;
+
+            border-radius:
+                12px;
+
+            font-weight:
+                700;
+
+            cursor:
+                pointer;
+        }
+
+
+        .upload-button:active {
+
+            transform:
+                scale(0.98);
+        }
+
+
+        #pdfFile {
+
+            display:
+                none;
+        }
+
+
+        #fileName {
+
+            margin-top:
+                14px;
+
+            font-weight:
+                700;
+
+            word-break:
+                break-word;
+        }
+
+
+        /* =============================================
+           INFORMATION GRID
+        ============================================= */
+
+        .info-grid {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(4, 1fr);
+
+            gap:
+                10px;
+        }
+
+
+        .info-box {
+
+            background:
+                #f8fafc;
+
+            border:
+                1px solid #e2e8f0;
+
+            border-radius:
+                14px;
+
+            padding:
+                14px 8px;
+
+            text-align:
+                center;
+        }
+
+
+        .info-number {
+
+            font-size:
+                22px;
+
+            font-weight:
+                800;
+
+            color:
+                #2563eb;
+        }
+
+
+        .info-label {
+
+            font-size:
+                12px;
+
+            color:
+                #64748b;
+
+            margin-top:
+                5px;
+        }
+
+
+        /* =============================================
+           BUTTONS
+        ============================================= */
+
+        .button-row {
+
+            display:
+                flex;
+
+            flex-wrap:
+                wrap;
+
+            gap:
+                10px;
+        }
+
+
+        button {
+
+            border:
+                0;
+
+            border-radius:
+                12px;
+
+            padding:
+                12px 16px;
+
+            font-size:
+                14px;
+
+            font-weight:
+                700;
+
+            cursor:
+                pointer;
+        }
+
+
+        .btn-blue {
+
+            background:
+                #2563eb;
+
+            color:
+                white;
+        }
+
+
+        .btn-gray {
+
+            background:
+                #e2e8f0;
+
+            color:
+                #172033;
+        }
+
+
+        .btn-red {
+
+            background:
+                #dc2626;
+
+            color:
+                white;
+        }
+
+
+        .btn-green {
+
+            background:
+                #16a34a;
+
+            color:
+                white;
+        }
+
+
+        button:disabled {
+
+            opacity:
+                0.45;
+
+            cursor:
+                not-allowed;
+        }
+
+
+        /* =============================================
+           SLIDE EDITOR
+        ============================================= */
+
+        .slides-container {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                repeat(2, 1fr);
+
+            gap:
+                12px;
+
+            max-height:
+                600px;
+
+            overflow-y:
+                auto;
+
+            padding:
+                5px;
+        }
+
+
+        .slide-card {
+
+            position:
+                relative;
+
+            background:
+                #ffffff;
+
+            border:
+                3px solid transparent;
+
+            border-radius:
+                12px;
+
+            overflow:
+                hidden;
+
+            cursor:
+                pointer;
+
+            box-shadow:
+                0 3px 12px
+                rgba(0,0,0,0.08);
+        }
+
+
+        .slide-card.selected {
+
+            border-color:
+                #2563eb;
+        }
+
+
+        .slide-card canvas {
+
+            display:
+                block;
+
+            width:
+                100%;
+
+            height:
+                auto;
+        }
+
+
+        .slide-check {
+
+            position:
+                absolute;
+
+            top:
+                7px;
+
+            right:
+                7px;
+
+            width:
+                27px;
+
+            height:
+                27px;
+
+            border-radius:
+                50%;
+
+            background:
+                #2563eb;
+
+            color:
+                white;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            font-weight:
+                900;
+
+            z-index:
+                2;
+
+            opacity:
+                0;
+        }
+
+
+        .slide-card.selected .slide-check {
+
+            opacity:
+                1;
+        }
+
+
+        .slide-number {
+
+            position:
+                absolute;
+
+            bottom:
+                6px;
+
+            left:
+                6px;
+
+            background:
+                rgba(15,23,42,0.8);
+
+            color:
+                white;
+
+            padding:
+                5px 8px;
+
+            border-radius:
+                7px;
+
+            font-size:
+                11px;
+        }
+
+
+        /* =============================================
+           SETTINGS
+        ============================================= */
+
+        .setting {
+
+            margin-bottom:
+                18px;
+        }
+
+
+        .setting:last-child {
+
+            margin-bottom:
+                0;
+        }
+
+
+        .setting label {
+
+            display:
+                block;
+
+            font-weight:
+                700;
+
+            margin-bottom:
+                8px;
+        }
+
+
+        select,
+        input[type="number"] {
+
+            width:
+                100%;
+
+            padding:
+                13px;
+
+            border:
+                1px solid #cbd5e1;
+
+            border-radius:
+                12px;
+
+            background:
+                white;
+
+            font-size:
+                15px;
+
+            outline:
+                none;
+        }
+
+
+        select:focus,
+        input[type="number"]:focus {
+
+            border-color:
+                #2563eb;
+        }
+
+
+        /* =============================================
+           RANGE
+        ============================================= */
+
+        input[type="range"] {
+
+            width:
+                100%;
+
+            accent-color:
+                #2563eb;
+        }
+
+
+        .range-title {
+
+            font-size:
+                19px;
+
+            font-weight:
+                800;
+
+            margin-bottom:
+                10px;
+        }
+
+
+        /* =============================================
+           CUSTOM PAPER
+        ============================================= */
+
+        .custom-paper-settings {
+
+            display:
+                none;
+
+            margin-top:
+                12px;
+
+            padding:
+                15px;
+
+            background:
+                #f8fafc;
+
+            border:
+                1px solid #e2e8f0;
+
+            border-radius:
+                14px;
+        }
+
+
+        .custom-input {
+
+            margin-bottom:
+                12px;
+        }
+
+
+        .custom-input:last-child {
+
+            margin-bottom:
+                0;
+        }
+
+
+        .custom-input label {
+
+            font-size:
+                14px;
+        }
+
+
+        /* =============================================
+           CHECKBOX
+        ============================================= */
+
+        .check-box {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                10px;
+
+            padding:
+                15px;
+
+            border:
+                1px solid #e2e8f0;
+
+            border-radius:
+                14px;
+
+            background:
+                #f8fafc;
+
+            font-size:
+                16px;
+
+            font-weight:
+                700;
+        }
+
+
+        .check-box input {
+
+            width:
+                22px;
+
+            height:
+                22px;
+
+            accent-color:
+                #2563eb;
+        }
+
+
+        /* =============================================
+           PRINT MODE
+        ============================================= */
+
+        .mode-box {
+
+            display:
+                grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap:
+                10px;
+        }
+
+
+        .mode-option {
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            gap:
+                8px;
+
+            padding:
+                15px;
+
+            border:
+                1px solid #e2e8f0;
+
+            border-radius:
+                14px;
+
+            background:
+                #f8fafc;
+
+            font-weight:
+                700;
+        }
+
+
+        .mode-option input {
+
+            width:
+                20px;
+
+            height:
+                20px;
+
+            accent-color:
+                #2563eb;
+        }
+
+
+        /* =============================================
+           PREVIEW
+        ============================================= */
+
+        #previewContainer {
+
+            width:
+                100%;
+
+            background:
+                #e5e7eb;
+
+            border-radius:
+                18px;
+
+            padding:
+                18px;
+
+            overflow:
+                auto;
+
+            min-height:
+                300px;
+        }
+
+
+        .preview-paper {
+
+            position:
+                relative;
+
+            width:
+                min(100%, 650px);
+
+            margin:
+                0 auto 25px;
+
+            background:
+                #ffffff;
+
+            box-shadow:
+                0 5px 20px
+                rgba(0,0,0,0.15);
+
+            overflow:
+                hidden;
+        }
+
+
+        .preview-grid {
+
+            width:
+                100%;
+
+            height:
+                100%;
+
+            display:
+                grid;
+        }
+
+
+        .preview-slide {
+
+            position:
+                relative;
+
+            min-width:
+                0;
+
+            min-height:
+                0;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            overflow:
+                hidden;
+        }
+
+
+        .preview-slide canvas {
+
+            display:
+                block;
+
+            width:
+                100%;
+
+            height:
+                100%;
+
+            object-fit:
+                contain;
+        }
+
+
+        .preview-border {
+
+            border:
+                0.7px solid #555;
+        }
+
+
+        .empty-message {
+
+            min-height:
+                220px;
+
+            display:
+                flex;
+
+            align-items:
+                center;
+
+            justify-content:
+                center;
+
+            text-align:
+                center;
+
+            color:
+                #64748b;
+
+            font-size:
+                17px;
+        }
+
+
+        /* =============================================
+           GENERATE
+        ============================================= */
+
+        .generate-card {
+
+            text-align:
+                center;
+        }
+
+
+        #generateBtn {
+
+            width:
+                100%;
+
+            min-height:
+                58px;
+
+            background:
+                #16a34a;
+
+            color:
+                #ffffff;
+
+            font-size:
+                18px;
+
+            font-weight:
+                800;
+        }
+
+
+        #generateBtn:disabled {
+
+            background:
+                #94a3b8;
+        }
+
+
+        #statusMessage {
+
+            margin-top:
+                14px;
+
+            font-size:
+                14px;
+
+            font-weight:
+                600;
+
+            color:
+                #475569;
+        }
+
+
+        /* =============================================
+           FOOTER
+        ============================================= */
+
+        footer {
+
+            text-align:
+                center;
+
+            padding:
+                20px;
+
+            color:
+                #64748b;
+
+            font-size:
+                14px;
+        }
+
+
+        /* =============================================
+           MOBILE
+        ============================================= */
+
+        @media
+        (max-width: 600px) {
+
+            .app {
+
+                padding:
+                    12px;
+            }
+
+
+            .header h1 {
+
+                font-size:
+                    25px;
+            }
+
+
+            .card {
+
+                padding:
+                    15px;
+
+                border-radius:
+                    18px;
+            }
+
+
+            .info-grid {
+
+                grid-template-columns:
+                    repeat(2, 1fr);
+            }
+
+
+            .slides-container {
+
+                grid-template-columns:
+                    1fr 1fr;
+
+                gap:
+                    8px;
+            }
+
+
+            .button-row button {
+
+                flex:
+                    1 1 calc(50% - 10px);
+            }
+
+
+            .mode-box {
+
+                grid-template-columns:
+                    1fr;
+            }
+
+
+            #previewContainer {
+
+                padding:
+                    8px;
+            }
+        }
+
+
+    </style>
+
 </head>
+
 
 <body>
 
-<header>
-    <div class="container">
-        <h1>Digital To Printable</h1>
-        <p>Convert PDF slides into printable pages</p>
-    </div>
-</header>
+
+<div class="app">
 
 
-<main class="container">
+    <!-- =================================================
+         HEADER
+    ================================================== -->
 
-    <!-- UPLOAD -->
-    <section class="upload-box">
+    <header class="header">
 
-        <h2>📄 Upload PDF</h2>
+        <h1>
+            📚 Digital To Printable
+        </h1>
 
         <p>
-            Select your lecture PDF to start creating a printable file.
+            Convert PDF slides into paper-saving printable PDF
         </p>
 
-        <label for="pdfFile" class="upload-btn">
-            Choose PDF File
-        </label>
-
-        <input
-            type="file"
-            id="pdfFile"
-            accept="application/pdf,.pdf"
-        >
-
-        <p id="fileName" class="file-name">
-            No PDF selected
-        </p>
-
-    </section>
+    </header>
 
 
-    <!-- PDF INFORMATION -->
-    <section class="info">
+    <!-- =================================================
+         PDF UPLOAD
+    ================================================== -->
 
-        <h2>📊 PDF Information</h2>
+    <section class="card">
 
-        <div class="info-grid">
+        <h2 class="card-title">
+            📤 Upload PDF
+        </h2>
 
-            <div class="info-item">
-                Total Slides
-                <strong id="totalSlides">0</strong>
+
+        <div class="upload-box">
+
+            <div class="upload-icon">
+                📄
             </div>
 
-            <div class="info-item">
-                Selected
-                <strong id="selectedSlides">0</strong>
-            </div>
 
-            <div class="info-item">
-                Slides / Page
-                <strong id="slidesPerPageInfo">1</strong>
-            </div>
+            <h2>
+                Upload your PDF
+            </h2>
 
-            <div class="info-item">
-                Paper Saving
-                <strong id="paperSaving">0%</strong>
+
+            <p>
+                Select your lecture or presentation PDF
+            </p>
+
+
+            <label
+                for="pdfFile"
+                class="upload-button"
+            >
+                📁 Choose PDF File
+            </label>
+
+
+            <input
+                type="file"
+                id="pdfFile"
+                accept="application/pdf,.pdf"
+            >
+
+
+            <div id="fileName">
+                No PDF selected
             </div>
 
         </div>
@@ -79,35 +1156,152 @@
     </section>
 
 
-    <!-- SLIDE EDITOR -->
-    <section class="info">
+    <!-- =================================================
+         PDF INFORMATION
+    ================================================== -->
 
-        <h2>🖼️ Slide Editor</h2>
+    <section class="card">
 
-        <div class="editor-buttons">
+        <h2 class="card-title">
+            📊 PDF Information
+        </h2>
 
-            <button id="selectAllBtn">
+
+        <div class="info-grid">
+
+
+            <div class="info-box">
+
+                <div
+                    class="info-number"
+                    id="totalSlides"
+                >
+                    0
+                </div>
+
+                <div class="info-label">
+                    Total Slides
+                </div>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <div
+                    class="info-number"
+                    id="selectedSlides"
+                >
+                    0
+                </div>
+
+                <div class="info-label">
+                    Selected
+                </div>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <div
+                    class="info-number"
+                    id="slidesPerPageInfo"
+                >
+                    12
+                </div>
+
+                <div class="info-label">
+                    Slides / Page
+                </div>
+
+            </div>
+
+
+            <div class="info-box">
+
+                <div
+                    class="info-number"
+                    id="paperSaving"
+                >
+                    0%
+                </div>
+
+                <div class="info-label">
+                    Paper Saving
+                </div>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+    <!-- =================================================
+         SLIDE EDITOR
+    ================================================== -->
+
+    <section class="card">
+
+        <h2 class="card-title">
+            ✏️ Slide Editor
+        </h2>
+
+
+        <div class="button-row">
+
+            <button
+                id="selectAllBtn"
+                class="btn-blue"
+                type="button"
+            >
                 ☑️ Select All
             </button>
 
-            <button id="clearAllBtn">
+
+            <button
+                id="clearAllBtn"
+                class="btn-gray"
+                type="button"
+            >
                 ⬜ Clear All
             </button>
 
-            <button id="deleteBtn">
-                🗑️ Delete Selected
+
+            <button
+                id="deleteBtn"
+                class="btn-red"
+                type="button"
+            >
+                🗑️ Delete
             </button>
 
-            <button id="undoBtn">
+
+            <button
+                id="undoBtn"
+                class="btn-green"
+                type="button"
+            >
                 ↩️ Undo
             </button>
 
         </div>
 
-        <div id="slidesContainer" class="slides-container">
+
+        <br>
+
+
+        <div
+            id="slidesContainer"
+            class="slides-container"
+        >
 
             <div class="empty-message">
-                Upload a PDF to see your slides here.
+
+                Upload a PDF to see slides here.
+
             </div>
 
         </div>
@@ -115,28 +1309,58 @@
     </section>
 
 
-    <!-- PRINT SETTINGS -->
-    <section class="info">
+    <!-- =================================================
+         PRINT SETTINGS
+    ================================================== -->
 
-        <h2>⚙️ Print Settings</h2>
+    <section class="card">
+
+        <h2 class="card-title">
+            ⚙️ Print Settings
+        </h2>
 
 
         <!-- SLIDES PER PAGE -->
+
         <div class="setting">
 
             <label for="slidesPerPage">
-                Slides Per Page
+                📑 Slides Per Page
             </label>
+
 
             <select id="slidesPerPage">
 
-                <option value="1">1 Slide</option>
-                <option value="2">2 Slides</option>
-                <option value="4">4 Slides</option>
-                <option value="6">6 Slides</option>
-                <option value="8">8 Slides</option>
-                <option value="9">9 Slides</option>
-                <option value="12">12 Slides</option>
+                <option value="1">
+                    1 Slide / Page
+                </option>
+
+                <option value="2">
+                    2 Slides / Page
+                </option>
+
+                <option value="4">
+                    4 Slides / Page
+                </option>
+
+                <option value="6">
+                    6 Slides / Page
+                </option>
+
+                <option value="8">
+                    8 Slides / Page
+                </option>
+
+                <option value="9">
+                    9 Slides / Page
+                </option>
+
+                <option
+                    value="12"
+                    selected
+                >
+                    12 Slides / Page
+                </option>
 
             </select>
 
@@ -144,33 +1368,101 @@
 
 
         <!-- PAPER SIZE -->
+
         <div class="setting">
 
             <label for="paperSize">
-                Paper Size
+                📄 Paper Size
             </label>
+
 
             <select id="paperSize">
 
-                <option value="A4">A4</option>
-                <option value="A5">A5</option>
-                <option value="LETTER">Letter</option>
+                <option value="A4" selected>
+                    A4
+                </option>
+
+                <option value="A5">
+                    A5
+                </option>
+
+                <option value="LETTER">
+                    Letter
+                </option>
+
+                <option value="CUSTOM">
+                    Custom
+                </option>
 
             </select>
+
+
+            <!-- CUSTOM PAPER -->
+
+            <div
+                id="customPaperSettings"
+                class="custom-paper-settings"
+            >
+
+                <div class="custom-input">
+
+                    <label for="customWidth">
+                        Custom Width (mm)
+                    </label>
+
+
+                    <input
+                        type="number"
+                        id="customWidth"
+                        min="50"
+                        max="1000"
+                        value="210"
+                        step="1"
+                        inputmode="decimal"
+                    >
+
+                </div>
+
+
+                <div class="custom-input">
+
+                    <label for="customHeight">
+                        Custom Height (mm)
+                    </label>
+
+
+                    <input
+                        type="number"
+                        id="customHeight"
+                        min="50"
+                        max="1000"
+                        value="297"
+                        step="1"
+                        inputmode="decimal"
+                    >
+
+                </div>
+
+            </div>
 
         </div>
 
 
         <!-- ORIENTATION -->
+
         <div class="setting">
 
             <label for="orientation">
-                Orientation
+                🔄 Orientation
             </label>
+
 
             <select id="orientation">
 
-                <option value="portrait">
+                <option
+                    value="portrait"
+                    selected
+                >
                     Portrait
                 </option>
 
@@ -184,101 +1476,148 @@
 
 
         <!-- MARGIN -->
+
         <div class="setting">
 
-            <label for="margin">
+            <div class="range-title">
+
                 Margin:
-                <span id="marginValue">10</span> mm
-            </label>
+                <span id="marginValue">
+                    2
+                </span>
+                mm
+
+            </div>
+
 
             <input
                 type="range"
                 id="margin"
                 min="0"
                 max="30"
-                value="10"
+                value="2"
+                step="1"
             >
 
         </div>
 
 
         <!-- SPACING -->
+
         <div class="setting">
 
-            <label for="spacing">
+            <div class="range-title">
+
                 Spacing:
-                <span id="spacingValue">5</span> mm
-            </label>
+                <span id="spacingValue">
+                    1
+                </span>
+                mm
+
+            </div>
+
 
             <input
                 type="range"
                 id="spacing"
                 min="0"
                 max="20"
-                value="5"
+                value="1"
+                step="1"
             >
 
         </div>
 
 
         <!-- BORDER -->
-        <div class="toggle-setting">
 
-            <label>
+        <div class="setting">
+
+            <label class="check-box">
+
                 <input
                     type="checkbox"
                     id="border"
                     checked
                 >
 
-                <span>▣ Add Border</span>
+                <span>
+                    ▣ Add Border
+                </span>
+
             </label>
 
         </div>
 
 
-        <!-- COLOR MODE -->
-        <div class="mode-box">
+        <!-- PRINT MODE -->
+
+        <div class="setting">
 
             <label>
-                <input
-                    type="radio"
-                    name="printMode"
-                    value="color"
-                    checked
-                >
-
-                🎨 Color
+                🎨 Print Mode
             </label>
 
 
-            <label>
-                <input
-                    type="radio"
-                    name="printMode"
-                    value="bw"
-                >
+            <div class="mode-box">
 
-                ⚫ Black & White
-            </label>
+
+                <label class="mode-option">
+
+                    <input
+                        type="radio"
+                        name="printMode"
+                        value="color"
+                    >
+
+                    <span>
+                        🌈 Color
+                    </span>
+
+                </label>
+
+
+                <label class="mode-option">
+
+                    <input
+                        type="radio"
+                        name="printMode"
+                        value="bw"
+                        checked
+                    >
+
+                    <span>
+                        ⚫ Black & White
+                    </span>
+
+                </label>
+
+
+            </div>
 
         </div>
+
 
     </section>
 
 
-    <!-- PREVIEW -->
-    <section class="info">
+    <!-- =================================================
+         PRINT PREVIEW
+    ================================================== -->
 
-        <h2>👀 Print Preview</h2>
+    <section class="card">
 
-        <div
-            id="previewContainer"
-            class="preview-container"
-        >
+        <h2 class="card-title">
+            👀 Print Preview
+        </h2>
+
+
+        <div id="previewContainer">
 
             <div class="empty-message">
+
                 Print preview will appear here.
+
             </div>
 
         </div>
@@ -286,43 +1625,71 @@
     </section>
 
 
-    <!-- GENERATE -->
-    <section class="generate-box">
+    <!-- =================================================
+         GENERATE PDF
+    ================================================== -->
+
+    <section class="card generate-card">
+
 
         <button
             id="generateBtn"
-            class="generate-btn"
+            type="button"
             disabled
         >
             📥 Generate Printable PDF
         </button>
 
-        <p id="statusMessage">
+
+        <div id="statusMessage">
+
             Upload a PDF to begin.
-        </p>
+
+        </div>
+
 
     </section>
 
-</main>
 
+    <!-- =================================================
+         FOOTER
+    ================================================== -->
 
-<footer>
+    <footer>
 
-    <p>
         © 2026 Digital To Printable
-    </p>
 
-</footer>
+    </footer>
 
 
-<!-- PDF.JS -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+</div>
 
-<!-- jsPDF -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-<!-- OUR SCRIPT -->
+<!-- =====================================================
+     PDF.JS
+====================================================== -->
+
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js">
+</script>
+
+
+<!-- =====================================================
+     JSPDF
+====================================================== -->
+
+<script
+    src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+</script>
+
+
+<!-- =====================================================
+     OUR SCRIPT
+====================================================== -->
+
 <script src="script.js"></script>
 
+
 </body>
-</html>
+
+    </html>
