@@ -1330,3 +1330,266 @@ async function addSlideToPDF({
         );
     }
 }
+/* =========================================
+   ADVANCED VISUAL PRINT PREVIEW
+========================================= */
+
+function createVisualPreview() {
+
+    const preview =
+        document.getElementById("previewContainer");
+
+    preview.innerHTML = "";
+
+    if (
+        slides.length === 0 ||
+        selectedSlideIds.size === 0
+    ) {
+        preview.innerHTML =
+            '<div class="empty-message">Print preview will appear here.</div>';
+
+        return;
+    }
+
+    const perPage =
+        Number(slidesPerPage.value);
+
+    const selected =
+        slides.filter(slide =>
+            selectedSlideIds.has(slide.id)
+        );
+
+    const grid =
+        getGrid(perPage);
+
+    const paper =
+        document.getElementById("paperSize").value;
+
+    const orientation =
+        document.getElementById("orientation").value;
+
+    const marginSize =
+        Number(margin.value);
+
+    const spacingSize =
+        Number(spacing.value);
+
+    const borderEnabled =
+        document.getElementById("border").checked;
+
+    /* Preview paper */
+
+    const paperElement =
+        document.createElement("div");
+
+    paperElement.className =
+        "preview-paper";
+
+    if (paper === "A4") {
+        paperElement.dataset.paper = "a4";
+    }
+
+    if (paper === "A5") {
+        paperElement.dataset.paper = "a5";
+    }
+
+    if (paper === "LETTER") {
+        paperElement.dataset.paper = "letter";
+    }
+
+    paperElement.dataset.orientation =
+        orientation;
+
+    /* Grid */
+
+    const gridElement =
+        document.createElement("div");
+
+    gridElement.className =
+        "preview-grid";
+
+    gridElement.style.gridTemplateColumns =
+        `repeat(${grid.columns}, 1fr)`;
+
+    gridElement.style.gridTemplateRows =
+        `repeat(${grid.rows}, 1fr)`;
+
+    gridElement.style.gap =
+        Math.max(
+            2,
+            spacingSize
+        ) + "px";
+
+    gridElement.style.padding =
+        Math.max(
+            5,
+            marginSize
+        ) + "px";
+
+
+    selected.forEach(slide => {
+
+        const item =
+            document.createElement("div");
+
+        item.className =
+            "preview-slide";
+
+        if (borderEnabled) {
+            item.classList.add(
+                "preview-border"
+            );
+        }
+
+        const image =
+            document.createElement("canvas");
+
+        image.width =
+            slide.canvas.width;
+
+        image.height =
+            slide.canvas.height;
+
+        const ctx =
+            image.getContext("2d");
+
+        ctx.drawImage(
+            slide.canvas,
+            0,
+            0
+        );
+
+        item.appendChild(image);
+
+        gridElement.appendChild(item);
+    });
+
+    paperElement.appendChild(
+        gridElement
+    );
+
+    preview.appendChild(
+        paperElement
+    );
+}
+
+
+/* =========================================
+   PREVIEW EVENTS
+========================================= */
+
+slidesPerPage.addEventListener(
+    "change",
+    createVisualPreview
+);
+
+margin.addEventListener(
+    "input",
+    createVisualPreview
+);
+
+spacing.addEventListener(
+    "input",
+    createVisualPreview
+);
+
+
+document
+    .getElementById("paperSize")
+    .addEventListener(
+        "change",
+        createVisualPreview
+    );
+
+
+document
+    .getElementById("orientation")
+    .addEventListener(
+        "change",
+        createVisualPreview
+    );
+
+
+document
+    .getElementById("border")
+    .addEventListener(
+        "change",
+        createVisualPreview
+    );
+
+
+document
+    .querySelectorAll(
+        'input[name="printMode"]'
+    )
+    .forEach(input => {
+
+        input.addEventListener(
+            "change",
+            createVisualPreview
+        );
+
+    });
+
+
+/* =========================================
+   UPDATE PREVIEW AFTER SELECTION
+========================================= */
+
+const originalToggleSlide =
+    toggleSlide;
+
+toggleSlide = function(id) {
+
+    originalToggleSlide(id);
+
+    createVisualPreview();
+};
+
+
+/* =========================================
+   UPDATE PREVIEW AFTER DELETE
+========================================= */
+
+const originalDeleteSelectedSlides =
+    deleteSelectedSlides;
+
+deleteSelectedSlides = function() {
+
+    originalDeleteSelectedSlides();
+
+    setTimeout(
+        createVisualPreview,
+        50
+    );
+};
+
+
+/* =========================================
+   UPDATE PREVIEW AFTER SELECT ALL
+========================================= */
+
+const originalSelectAllSlides =
+    selectAllSlides;
+
+selectAllSlides = function() {
+
+    originalSelectAllSlides();
+
+    createVisualPreview();
+};
+
+
+/* =========================================
+   UPDATE PREVIEW AFTER CLEAR ALL
+========================================= */
+
+const originalClearAllSlides =
+    clearAllSlides;
+
+clearAllSlides = function() {
+
+    originalClearAllSlides();
+
+    createVisualPreview();
+};
