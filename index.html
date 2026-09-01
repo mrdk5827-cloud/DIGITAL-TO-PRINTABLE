@@ -3,14 +3,326 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Digital To Printable</title>
+
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <h1>Digital To Printable</h1>
-    <p>Convert your PDF slides into printable pages.</p>
+<header>
+    <div class="container">
+        <h1>Digital To Printable</h1>
+        <p>Convert PDF slides into printable pages</p>
+    </div>
+</header>
+
+
+<main class="container">
+
+    <!-- UPLOAD -->
+    <section class="upload-box">
+
+        <h2>📄 Upload PDF</h2>
+
+        <p>
+            Select your lecture PDF to start creating a printable file.
+        </p>
+
+        <label for="pdfFile" class="upload-btn">
+            Choose PDF File
+        </label>
+
+        <input
+            type="file"
+            id="pdfFile"
+            accept="application/pdf,.pdf"
+        >
+
+        <p id="fileName" class="file-name">
+            No PDF selected
+        </p>
+
+    </section>
+
+
+    <!-- PDF INFORMATION -->
+    <section class="info">
+
+        <h2>📊 PDF Information</h2>
+
+        <div class="info-grid">
+
+            <div class="info-item">
+                Total Slides
+                <strong id="totalSlides">0</strong>
+            </div>
+
+            <div class="info-item">
+                Selected
+                <strong id="selectedSlides">0</strong>
+            </div>
+
+            <div class="info-item">
+                Slides / Page
+                <strong id="slidesPerPageInfo">1</strong>
+            </div>
+
+            <div class="info-item">
+                Paper Saving
+                <strong id="paperSaving">0%</strong>
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- SLIDE EDITOR -->
+    <section class="info">
+
+        <h2>🖼️ Slide Editor</h2>
+
+        <div class="editor-buttons">
+
+            <button id="selectAllBtn">
+                ☑️ Select All
+            </button>
+
+            <button id="clearAllBtn">
+                ⬜ Clear All
+            </button>
+
+            <button id="deleteBtn">
+                🗑️ Delete Selected
+            </button>
+
+            <button id="undoBtn">
+                ↩️ Undo
+            </button>
+
+        </div>
+
+        <div id="slidesContainer" class="slides-container">
+
+            <div class="empty-message">
+                Upload a PDF to see your slides here.
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- PRINT SETTINGS -->
+    <section class="info">
+
+        <h2>⚙️ Print Settings</h2>
+
+
+        <!-- SLIDES PER PAGE -->
+        <div class="setting">
+
+            <label for="slidesPerPage">
+                Slides Per Page
+            </label>
+
+            <select id="slidesPerPage">
+
+                <option value="1">1 Slide</option>
+                <option value="2">2 Slides</option>
+                <option value="4">4 Slides</option>
+                <option value="6">6 Slides</option>
+                <option value="8">8 Slides</option>
+                <option value="9">9 Slides</option>
+                <option value="12">12 Slides</option>
+
+            </select>
+
+        </div>
+
+
+        <!-- PAPER SIZE -->
+        <div class="setting">
+
+            <label for="paperSize">
+                Paper Size
+            </label>
+
+            <select id="paperSize">
+
+                <option value="A4">A4</option>
+                <option value="A5">A5</option>
+                <option value="LETTER">Letter</option>
+
+            </select>
+
+        </div>
+
+
+        <!-- ORIENTATION -->
+        <div class="setting">
+
+            <label for="orientation">
+                Orientation
+            </label>
+
+            <select id="orientation">
+
+                <option value="portrait">
+                    Portrait
+                </option>
+
+                <option value="landscape">
+                    Landscape
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- MARGIN -->
+        <div class="setting">
+
+            <label for="margin">
+                Margin:
+                <span id="marginValue">10</span> mm
+            </label>
+
+            <input
+                type="range"
+                id="margin"
+                min="0"
+                max="30"
+                value="10"
+            >
+
+        </div>
+
+
+        <!-- SPACING -->
+        <div class="setting">
+
+            <label for="spacing">
+                Spacing:
+                <span id="spacingValue">5</span> mm
+            </label>
+
+            <input
+                type="range"
+                id="spacing"
+                min="0"
+                max="20"
+                value="5"
+            >
+
+        </div>
+
+
+        <!-- BORDER -->
+        <div class="toggle-setting">
+
+            <label>
+                <input
+                    type="checkbox"
+                    id="border"
+                    checked
+                >
+
+                <span>▣ Add Border</span>
+            </label>
+
+        </div>
+
+
+        <!-- COLOR MODE -->
+        <div class="mode-box">
+
+            <label>
+                <input
+                    type="radio"
+                    name="printMode"
+                    value="color"
+                    checked
+                >
+
+                🎨 Color
+            </label>
+
+
+            <label>
+                <input
+                    type="radio"
+                    name="printMode"
+                    value="bw"
+                >
+
+                ⚫ Black & White
+            </label>
+
+        </div>
+
+    </section>
+
+
+    <!-- PREVIEW -->
+    <section class="info">
+
+        <h2>👀 Print Preview</h2>
+
+        <div
+            id="previewContainer"
+            class="preview-container"
+        >
+
+            <div class="empty-message">
+                Print preview will appear here.
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- GENERATE -->
+    <section class="generate-box">
+
+        <button
+            id="generateBtn"
+            class="generate-btn"
+            disabled
+        >
+            📥 Generate Printable PDF
+        </button>
+
+        <p id="statusMessage">
+            Upload a PDF to begin.
+        </p>
+
+    </section>
+
+</main>
+
+
+<footer>
+
+    <p>
+        © 2026 Digital To Printable
+    </p>
+
+</footer>
+
+
+<!-- PDF.JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+<!-- jsPDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<!-- OUR SCRIPT -->
+<script src="script.js"></script>
 
 </body>
 </html>
