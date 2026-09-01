@@ -687,3 +687,96 @@ footer {
         gap: 12px;
     }
 }
+/* =========================================
+   ADVANCED PRINT PREVIEW
+========================================= */
+
+.preview-paper {
+    width: min(100%, 650px);
+    margin: 0 auto;
+    background: white;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.18);
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.preview-paper[data-paper="a4"] {
+    aspect-ratio: 210 / 297;
+}
+
+.preview-paper[data-paper="a5"] {
+    aspect-ratio: 148 / 210;
+}
+
+.preview-paper[data-paper="letter"] {
+    aspect-ratio: 8.5 / 11;
+}
+
+.preview-paper[data-orientation="landscape"] {
+    aspect-ratio: 297 / 210;
+}
+
+.preview-paper[data-paper="a5"][data-orientation="landscape"] {
+    aspect-ratio: 210 / 148;
+}
+
+.preview-paper[data-paper="letter"][data-orientation="landscape"] {
+    aspect-ratio: 11 / 8.5;
+}
+
+.preview-grid {
+    width: 100%;
+    height: 100%;
+
+    display: grid;
+
+    align-items: center;
+    justify-items: center;
+}
+
+.preview-slide {
+    width: 100%;
+    height: 100%;
+
+    min-width: 0;
+    min-height: 0;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    overflow: hidden;
+
+    background: white;
+}
+
+.preview-slide canvas {
+    max-width: 100%;
+    max-height: 100%;
+
+    width: auto;
+    height: auto;
+
+    object-fit: contain;
+
+    display: block;
+}
+
+.preview-border {
+    border: 1px solid #777;
+}
+
+
+/* Mobile preview */
+
+@media (max-width: 600px) {
+
+    .preview-paper {
+        width: 100%;
+    }
+
+    .preview-container {
+        padding: 8px;
+    }
+}
