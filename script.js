@@ -1,7 +1,6 @@
 /* =========================================================
    DIGITAL TO PRINTABLE
-   FINAL MEMORY-SAFE SCRIPT
-   WHITE BACKGROUND VERSION
+   MEMORY-SAFE + WHITE BACKGROUND VERSION
    ========================================================= */
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -17,6 +16,8 @@ const THUMB_SCALE = 0.45;
 const MAX_THUMB_WIDTH = 500;
 
 const PRINT_SCALE = 2;
+
+const MAX_PRINT_SCALE = 3;
 
 
 /* =========================================================
@@ -161,7 +162,10 @@ if (fileInput) {
 
 async function handlePDFSelection(event) {
 
-    if (isLoadingPDF || isGenerating) {
+    if (
+        isLoadingPDF ||
+        isGenerating
+    ) {
 
         return;
     }
@@ -185,7 +189,7 @@ async function handlePDFSelection(event) {
 
 
     /* ---------------------------------------------
-       Validate file
+       Validate PDF
     --------------------------------------------- */
 
     const isPDF =
@@ -213,7 +217,9 @@ async function handlePDFSelection(event) {
 
     isLoadingPDF = true;
 
-    generateBtn.disabled = true;
+    if (generateBtn) {
+        generateBtn.disabled = true;
+    }
 
 
     fileName.textContent =
@@ -241,6 +247,10 @@ async function handlePDFSelection(event) {
         await destroyCurrentPDF();
 
 
+        /* -----------------------------------------
+           Clear old data
+        ----------------------------------------- */
+
         slides = [];
 
         deletedHistory = [];
@@ -250,24 +260,44 @@ async function handlePDFSelection(event) {
         slideCounter = 0;
 
 
-        /* -----------------------------------------
-           Use File directly with PDF.js
-        ----------------------------------------- */
-
         currentFile =
             file;
 
 
-        const loadingTask =
-            pdfjsLib.getDocument({
+        /* -----------------------------------------
+           Create temporary object URL
+        ----------------------------------------- */
 
-                url: URL.createObjectURL(file)
+        const pdfURL =
+            URL.createObjectURL(file);
 
-            });
+
+        try {
+
+            const loadingTask =
+                pdfjsLib.getDocument({
+
+                    url:
+                        pdfURL
+
+                });
 
 
-        pdfDocument =
-            await loadingTask.promise;
+            pdfDocument =
+                await loadingTask.promise;
+
+
+        } finally {
+
+            /*
+             * Release object URL as soon as
+             * PDF.js has loaded the document.
+             */
+
+            URL.revokeObjectURL(
+                pdfURL
+            );
+        }
 
 
         totalSlides.textContent =
@@ -369,7 +399,8 @@ async function handlePDFSelection(event) {
 
 async function createAllThumbnails() {
 
-    slidesContainer.innerHTML = "";
+    slidesContainer.innerHTML =
+        "";
 
 
     const total =
@@ -397,9 +428,14 @@ async function createAllThumbnails() {
                 );
 
 
-            slides.push(slide);
+            slides.push(
+                slide
+            );
 
-            createSlideCard(slide);
+
+            createSlideCard(
+                slide
+            );
 
 
         } catch (error) {
@@ -412,16 +448,23 @@ async function createAllThumbnails() {
         }
 
 
+        /*
+         * Give the mobile browser
+         * some breathing time.
+         */
+
         if (
             pageNumber % 2 === 0
         ) {
 
-            await sleep(20);
+            await sleep(25);
         }
     }
 
 
-    if (slides.length === 0) {
+    if (
+        slides.length === 0
+    ) {
 
         throw new Error(
             "No pages could be rendered."
@@ -434,7 +477,9 @@ async function createAllThumbnails() {
    CREATE SINGLE THUMBNAIL
 ========================================================= */
 
-async function createThumbnail(pageNumber) {
+async function createThumbnail(
+    pageNumber
+) {
 
     const page =
         await pdfDocument.getPage(
@@ -470,7 +515,8 @@ async function createThumbnail(pageNumber) {
 
     const viewport =
         page.getViewport({
-            scale: scale
+            scale:
+                scale
         });
 
 
@@ -483,14 +529,18 @@ async function createThumbnail(pageNumber) {
     canvas.width =
         Math.max(
             1,
-            Math.ceil(viewport.width)
+            Math.ceil(
+                viewport.width
+            )
         );
 
 
     canvas.height =
         Math.max(
             1,
-            Math.ceil(viewport.height)
+            Math.ceil(
+                viewport.height
+            )
         );
 
 
@@ -498,10 +548,15 @@ async function createThumbnail(pageNumber) {
         canvas.getContext(
             "2d",
             {
-                alpha: false
+                alpha:
+                    false
             }
         );
 
+
+    /*
+     * White base
+     */
 
     context.fillStyle =
         "#ffffff";
@@ -530,21 +585,18 @@ async function createThumbnail(pageNumber) {
 
 
     /*
-     * =====================================================
      * IMPORTANT:
-     * Convert BLACK background to WHITE
-     * and WHITE writing to BLACK.
      *
-     * This makes the thumbnail look like the
-     * requested second PDF.
-     * =====================================================
+     * Do NOT use getImageData() here.
+     *
+     * CSS filter uses almost no extra
+     * JavaScript pixel memory.
+     *
+     * The original canvas remains untouched.
      */
 
-    invertCanvas(
-        context,
-        canvas.width,
-        canvas.height
-    );
+    canvas.style.filter =
+        "invert(1)";
 
 
     page.cleanup();
@@ -571,7 +623,9 @@ async function createThumbnail(pageNumber) {
    CREATE SLIDE CARD
 ========================================================= */
 
-function createSlideCard(slide) {
+function createSlideCard(
+    slide
+) {
 
     const card =
         document.createElement(
@@ -584,7 +638,9 @@ function createSlideCard(slide) {
 
 
     card.dataset.id =
-        String(slide.id);
+        String(
+            slide.id
+        );
 
 
     const check =
@@ -652,17 +708,23 @@ function createSlideCard(slide) {
    TOGGLE SLIDE
 ========================================================= */
 
-function toggleSlide(id) {
+function toggleSlide(
+    id
+) {
 
     if (
         selectedSlideIds.has(id)
     ) {
 
-        selectedSlideIds.delete(id);
+        selectedSlideIds.delete(
+            id
+        );
 
     } else {
 
-        selectedSlideIds.add(id);
+        selectedSlideIds.add(
+            id
+        );
     }
 
 
@@ -953,7 +1015,9 @@ function updateInformation() {
 
 
     slidesPerPageInfo.textContent =
-        String(perPage);
+        String(
+            perPage
+        );
 
 
     selectedSlides.textContent =
@@ -1004,7 +1068,9 @@ function updateInformation() {
 
 function updateGenerateButton() {
 
-    if (!generateBtn) return;
+    if (!generateBtn) {
+        return;
+    }
 
 
     generateBtn.disabled =
@@ -1251,7 +1317,9 @@ function getPaperSizeMM() {
    GRID
 ========================================================= */
 
-function getGrid(perPage) {
+function getGrid(
+    perPage
+) {
 
     const grids = {
 
@@ -1500,11 +1568,39 @@ function updatePreview() {
                 );
 
 
+            /*
+             * Invert while copying thumbnail.
+             *
+             * This avoids creating another
+             * permanent inverted thumbnail.
+             */
+
+            try {
+
+                context.filter =
+                    "invert(1)";
+
+            } catch (error) {
+
+                /*
+                 * Fallback for browsers that
+                 * do not support canvas filter.
+                 */
+
+                context.filter =
+                    "none";
+            }
+
+
             context.drawImage(
                 thumbnail,
                 0,
                 0
             );
+
+
+            context.filter =
+                "none";
 
 
             item.appendChild(
@@ -1570,7 +1666,8 @@ async function generatePrintablePDF() {
 
     isGenerating = true;
 
-    generateBtn.disabled = true;
+    generateBtn.disabled =
+        true;
 
 
     statusMessage.textContent =
@@ -1709,6 +1806,10 @@ async function generatePrintablePDF() {
                 i % perPage;
 
 
+            /*
+             * New printable page
+             */
+
             if (
                 i > 0 &&
                 position === 0
@@ -1770,7 +1871,12 @@ async function generatePrintablePDF() {
             );
 
 
-            await sleep(10);
+            /*
+             * Give mobile browser
+             * some breathing time.
+             */
+
+            await sleep(15);
         }
 
 
@@ -1852,13 +1958,19 @@ async function renderSlideToPDF(
         });
 
 
+    /*
+     * Calculate suitable quality.
+     *
+     * Keep mobile memory under control.
+     */
+
     const targetWidth =
         Math.min(
-            1600,
+            1400,
             Math.max(
-                700,
+                650,
                 Math.round(
-                    boxWidth * 8
+                    boxWidth * 7
                 )
             )
         );
@@ -1879,13 +1991,14 @@ async function renderSlideToPDF(
     scale =
         Math.min(
             scale,
-            3
+            MAX_PRINT_SCALE
         );
 
 
     const viewport =
         page.getViewport({
-            scale: scale
+            scale:
+                scale
         });
 
 
@@ -1911,10 +2024,15 @@ async function renderSlideToPDF(
         canvas.getContext(
             "2d",
             {
-                alpha: false
+                alpha:
+                    false
             }
         );
 
+
+    /*
+     * White base
+     */
 
     context.fillStyle =
         "#ffffff";
@@ -1942,13 +2060,19 @@ async function renderSlideToPDF(
     }).promise;
 
 
-    /* =====================================================
-       MAIN CHANGE:
-       BLACK → WHITE
-       WHITE → BLACK
-    ===================================================== */
+    /*
+     * =====================================================
+     * MAIN CONVERSION
+     *
+     * BLACK  → WHITE
+     * WHITE  → BLACK
+     *
+     * Done in small chunks so the complete
+     * pixel array is never held in memory.
+     * =====================================================
+     */
 
-    invertCanvas(
+    await invertCanvasMemorySafe(
         context,
         canvas.width,
         canvas.height
@@ -1956,10 +2080,7 @@ async function renderSlideToPDF(
 
 
     /*
-     * Keep the existing B&W option working.
-     *
-     * Since the image is already inverted,
-     * grayscale is applied AFTER inversion.
+     * Existing B&W option still works.
      */
 
     const mode =
@@ -2054,7 +2175,7 @@ async function renderSlideToPDF(
 
 
     /*
-     * PNG keeps text and diagrams sharper.
+     * PNG keeps text and diagrams sharp.
      */
 
     const imageDataURL =
@@ -2113,7 +2234,8 @@ async function renderSlideToPDF(
 
 
     /*
-     * IMPORTANT MEMORY CLEANUP
+     * IMPORTANT:
+     * Release canvas memory.
      */
 
     canvas.width = 1;
@@ -2129,61 +2251,95 @@ async function renderSlideToPDF(
 
 
 /* =========================================================
-   INVERT COLORS
-   BLACK → WHITE
-   WHITE → BLACK
+   MEMORY-SAFE COLOR INVERSION
 ========================================================= */
 
-function invertCanvas(
+async function invertCanvasMemorySafe(
     context,
     width,
     height
 ) {
 
-    const imageData =
-        context.getImageData(
-            0,
-            0,
-            width,
-            height
-        );
+    /*
+     * Small chunks are safer on mobile.
+     */
 
-
-    const data =
-        imageData.data;
+    const CHUNK_HEIGHT = 64;
 
 
     for (
-        let i = 0;
-        i < data.length;
-        i += 4
+        let y = 0;
+        y < height;
+        y += CHUNK_HEIGHT
     ) {
 
-        data[i] =
-            255 -
-            data[i];
+        const chunkHeight =
+            Math.min(
+                CHUNK_HEIGHT,
+                height - y
+            );
 
 
-        data[i + 1] =
-            255 -
-            data[i + 1];
+        const imageData =
+            context.getImageData(
+                0,
+                y,
+                width,
+                chunkHeight
+            );
 
 
-        data[i + 2] =
-            255 -
-            data[i + 2];
+        const data =
+            imageData.data;
+
+
+        for (
+            let i = 0;
+            i < data.length;
+            i += 4
+        ) {
+
+            data[i] =
+                255 -
+                data[i];
+
+
+            data[i + 1] =
+                255 -
+                data[i + 1];
+
+
+            data[i + 2] =
+                255 -
+                data[i + 2];
+
+            /*
+             * Alpha remains unchanged.
+             */
+        }
+
+
+        context.putImageData(
+            imageData,
+            0,
+            y
+        );
+
 
         /*
-         * Alpha channel remains unchanged.
+         * Give mobile browser
+         * some breathing time.
          */
+
+        if (
+            y % (
+                CHUNK_HEIGHT * 8
+            ) === 0
+        ) {
+
+            await sleep(0);
+        }
     }
-
-
-    context.putImageData(
-        imageData,
-        0,
-        0
-    );
 }
 
 
@@ -2213,7 +2369,8 @@ function convertToGrayscale(
                 0.587 *
                 data[i + 1] +
 
-                0.114 * data[i + 2]
+                0.114 *
+                data[i + 2]
             );
 
 
