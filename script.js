@@ -1,6 +1,7 @@
 /* =========================================================
    DIGITAL TO PRINTABLE
    FINAL MEMORY-SAFE SCRIPT
+   WHITE BACKGROUND VERSION
    ========================================================= */
 
 pdfjsLib.GlobalWorkerOptions.workerSrc =
@@ -250,11 +251,7 @@ async function handlePDFSelection(event) {
 
 
         /* -----------------------------------------
-           IMPORTANT:
-           Use File directly with PDF.js.
-
-           This avoids keeping an additional
-           Uint8Array copy of the complete PDF.
+           Use File directly with PDF.js
         ----------------------------------------- */
 
         currentFile =
@@ -415,10 +412,6 @@ async function createAllThumbnails() {
         }
 
 
-        /*
-         * Give mobile browser some time.
-         */
-
         if (
             pageNumber % 2 === 0
         ) {
@@ -458,10 +451,6 @@ async function createThumbnail(pageNumber) {
     let scale =
         THUMB_SCALE;
 
-
-    /*
-     * Prevent very large thumbnails.
-     */
 
     const estimatedWidth =
         originalViewport.width *
@@ -538,6 +527,24 @@ async function createThumbnail(pageNumber) {
             "white"
 
     }).promise;
+
+
+    /*
+     * =====================================================
+     * IMPORTANT:
+     * Convert BLACK background to WHITE
+     * and WHITE writing to BLACK.
+     *
+     * This makes the thumbnail look like the
+     * requested second PDF.
+     * =====================================================
+     */
+
+    invertCanvas(
+        context,
+        canvas.width,
+        canvas.height
+    );
 
 
     page.cleanup();
@@ -1409,10 +1416,6 @@ function updatePreview() {
             ", 1fr)";
 
 
-        /*
-         * Very small gap.
-         */
-
         gridElement.style.padding =
             (
                 marginMM /
@@ -1706,10 +1709,6 @@ async function generatePrintablePDF() {
                 i % perPage;
 
 
-            /*
-             * New printable page.
-             */
-
             if (
                 i > 0 &&
                 position === 0
@@ -1770,10 +1769,6 @@ async function generatePrintablePDF() {
                 cellHeight
             );
 
-
-            /*
-             * Let the browser breathe.
-             */
 
             await sleep(10);
         }
@@ -1857,13 +1852,6 @@ async function renderSlideToPDF(
         });
 
 
-    /*
-     * Calculate suitable quality.
-     *
-     * Do not make an extremely huge canvas
-     * on mobile devices.
-     */
-
     const targetWidth =
         Math.min(
             1600,
@@ -1887,10 +1875,6 @@ async function renderSlideToPDF(
             scale
         );
 
-
-    /*
-     * Safety limit.
-     */
 
     scale =
         Math.min(
@@ -1958,8 +1942,24 @@ async function renderSlideToPDF(
     }).promise;
 
 
+    /* =====================================================
+       MAIN CHANGE:
+       BLACK → WHITE
+       WHITE → BLACK
+    ===================================================== */
+
+    invertCanvas(
+        context,
+        canvas.width,
+        canvas.height
+    );
+
+
     /*
-     * Convert to B&W if selected.
+     * Keep the existing B&W option working.
+     *
+     * Since the image is already inverted,
+     * grayscale is applied AFTER inversion.
      */
 
     const mode =
@@ -2129,6 +2129,65 @@ async function renderSlideToPDF(
 
 
 /* =========================================================
+   INVERT COLORS
+   BLACK → WHITE
+   WHITE → BLACK
+========================================================= */
+
+function invertCanvas(
+    context,
+    width,
+    height
+) {
+
+    const imageData =
+        context.getImageData(
+            0,
+            0,
+            width,
+            height
+        );
+
+
+    const data =
+        imageData.data;
+
+
+    for (
+        let i = 0;
+        i < data.length;
+        i += 4
+    ) {
+
+        data[i] =
+            255 -
+            data[i];
+
+
+        data[i + 1] =
+            255 -
+            data[i + 1];
+
+
+        data[i + 2] =
+            255 -
+            data[i + 2];
+
+        /*
+         * Alpha channel remains unchanged.
+         */
+    }
+
+
+    context.putImageData(
+        imageData,
+        0,
+        0
+    );
+}
+
+
+/* =========================================================
    GRAYSCALE
 ========================================================= */
 
@@ -2154,8 +2213,7 @@ function convertToGrayscale(
                 0.587 *
                 data[i + 1] +
 
-                0.114 *
-                data[i + 2]
+                0.114 * data[i + 2]
             );
 
 
