@@ -796,3 +796,537 @@ function updatePreview() {
 
     preview.appendChild(info);
 }
+/* =========================================
+   PDF GENERATION ENGINE
+========================================= */
+
+generateBtn.addEventListener(
+    "click",
+    generatePrintablePDF
+);
+
+
+async function generatePrintablePDF() {
+
+    if (
+        slides.length === 0 ||
+        selectedSlideIds.size === 0
+    ) {
+
+        alert(
+            "Please upload a PDF and select at least one slide."
+        );
+
+        return;
+    }
+
+
+    generateBtn.disabled = true;
+
+    statusMessage.textContent =
+        "⏳ Creating printable PDF...";
+
+
+    try {
+
+        const {
+            jsPDF
+        } = window.jspdf;
+
+
+        /* ================================
+           SETTINGS
+        ================================= */
+
+        const selectedSlides =
+            slides.filter(slide =>
+                selectedSlideIds.has(
+                    slide.id
+                )
+            );
+
+
+        const perPage =
+            Number(
+                slidesPerPage.value
+            );
+
+
+        const selectedPaper =
+            document.getElementById(
+                "paperSize"
+            ).value;
+
+
+        const selectedOrientation =
+            document.getElementById(
+                "orientation"
+            ).value;
+
+
+        const marginMM =
+            Number(
+                margin.value
+            );
+
+
+        const spacingMM =
+            Number(
+                spacing.value
+            );
+
+
+        const borderEnabled =
+            document.getElementById(
+                "border"
+            ).checked;
+
+
+        const printMode =
+            document.querySelector(
+                'input[name="printMode"]:checked'
+            ).value;
+
+
+        /* ================================
+           CREATE PDF
+        ================================= */
+
+        const pdf =
+            new jsPDF({
+
+                orientation:
+                    selectedOrientation,
+
+                unit: "mm",
+
+                format:
+                    selectedPaper,
+
+                compress: true
+
+            });
+
+
+        /* ================================
+           PAGE SIZE
+        ================================= */
+
+        const pageWidth =
+            pdf.internal.pageSize.getWidth();
+
+
+        const pageHeight =
+            pdf.internal.pageSize.getHeight();
+
+
+        /* ================================
+           GRID
+        ================================= */
+
+        const grid =
+            getGrid(perPage);
+
+
+        const columns =
+            grid.columns;
+
+
+        const rows =
+            grid.rows;
+
+
+        const availableWidth =
+            pageWidth -
+            marginMM * 2;
+
+
+        const availableHeight =
+            pageHeight -
+            marginMM * 2;
+
+
+        const totalSpacingX =
+            spacingMM *
+            (columns - 1);
+
+
+        const totalSpacingY =
+            spacingMM *
+            (rows - 1);
+
+
+        const cellWidth =
+            (
+                availableWidth -
+                totalSpacingX
+            ) / columns;
+
+
+        const cellHeight =
+            (
+                availableHeight -
+                totalSpacingY
+            ) / rows;
+
+
+        /* ================================
+           SLIDES
+        ================================= */
+
+        for (
+            let i = 0;
+            i < selectedSlides.length;
+            i++
+        ) {
+
+            const position =
+                i % perPage;
+
+
+            if (
+                position === 0 &&
+                i !== 0
+            ) {
+
+                pdf.addPage();
+            }
+
+
+            const row =
+                Math.floor(
+                    position /
+                    columns
+                );
+
+
+            const column =
+                position %
+                columns;
+
+
+            const x =
+                marginMM +
+                column *
+                (
+                    cellWidth +
+                    spacingMM
+                );
+
+
+            const y =
+                marginMM +
+                row *
+                (
+                    cellHeight +
+                    spacingMM
+                );
+
+
+            await addSlideToPDF({
+
+                pdf,
+
+                slide:
+                    selectedSlides[i],
+
+                x,
+
+                y,
+
+                width:
+                    cellWidth,
+
+                height:
+                    cellHeight,
+
+                borderEnabled,
+
+                printMode
+
+            });
+
+        }
+
+
+        /* ================================
+           DOWNLOAD
+        ================================= */
+
+        const fileName =
+            "Digital-To-Printable.pdf";
+
+
+        pdf.save(fileName);
+
+
+        statusMessage.textContent =
+            "✅ Printable PDF created successfully.";
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        statusMessage.textContent =
+            "❌ PDF generation failed.";
+
+        alert(
+            "Something went wrong while creating the PDF."
+        );
+
+    } finally {
+
+        generateBtn.disabled =
+            false;
+    }
+}
+
+
+/* =========================================
+   GRID CALCULATION
+========================================= */
+
+function getGrid(perPage) {
+
+    const grids = {
+
+        1: {
+            columns: 1,
+            rows: 1
+        },
+
+        2: {
+            columns: 1,
+            rows: 2
+        },
+
+        4: {
+            columns: 2,
+            rows: 2
+        },
+
+        6: {
+            columns: 2,
+            rows: 3
+        },
+
+        8: {
+            columns: 2,
+            rows: 4
+        },
+
+        9: {
+            columns: 3,
+            rows: 3
+        },
+
+        12: {
+            columns: 3,
+            rows: 4
+        }
+
+    };
+
+
+    return (
+        grids[perPage] ||
+        grids[1]
+    );
+}
+
+
+/* =========================================
+   ADD SLIDE TO PDF
+========================================= */
+
+async function addSlideToPDF({
+
+    pdf,
+    slide,
+    x,
+    y,
+    width,
+    height,
+    borderEnabled,
+    printMode
+
+}) {
+
+    const canvas =
+        slide.canvas;
+
+
+    /* ================================
+       CREATE TEMP CANVAS
+    ================================= */
+
+    const tempCanvas =
+        document.createElement(
+            "canvas"
+        );
+
+
+    const context =
+        tempCanvas.getContext(
+            "2d"
+        );
+
+
+    tempCanvas.width =
+        canvas.width;
+
+    tempCanvas.height =
+        canvas.height;
+
+
+    /* ================================
+       WHITE BACKGROUND
+    ================================= */
+
+    context.fillStyle =
+        "#ffffff";
+
+    context.fillRect(
+        0,
+        0,
+        tempCanvas.width,
+        tempCanvas.height
+    );
+
+
+    /* ================================
+       COLOR / B&W
+    ================================= */
+
+    if (
+        printMode === "bw"
+    ) {
+
+        context.filter =
+            "grayscale(100%)";
+    }
+
+
+    context.drawImage(
+        canvas,
+        0,
+        0
+    );
+
+
+    context.filter =
+        "none";
+
+
+    const imageData =
+        tempCanvas.toDataURL(
+            "image/jpeg",
+            0.92
+        );
+
+
+    /* ================================
+       KEEP ASPECT RATIO
+    ================================= */
+
+    const imageRatio =
+        tempCanvas.width /
+        tempCanvas.height;
+
+
+    const boxRatio =
+        width /
+        height;
+
+
+    let finalWidth =
+        width;
+
+
+    let finalHeight =
+        height;
+
+
+    if (
+        imageRatio > boxRatio
+    ) {
+
+        finalHeight =
+            width /
+            imageRatio;
+
+    } else {
+
+        finalWidth =
+            height *
+            imageRatio;
+    }
+
+
+    const finalX =
+        x +
+        (
+            width -
+            finalWidth
+        ) / 2;
+
+
+    const finalY =
+        y +
+        (
+            height -
+            finalHeight
+        ) / 2;
+
+
+    /* ================================
+       ADD IMAGE
+    ================================= */
+
+    pdf.addImage(
+
+        imageData,
+
+        "JPEG",
+
+        finalX,
+
+        finalY,
+
+        finalWidth,
+
+        finalHeight,
+
+        undefined,
+
+        "FAST"
+
+    );
+
+
+    /* ================================
+       BORDER
+    ================================= */
+
+    if (borderEnabled) {
+
+        pdf.setDrawColor(
+            120,
+            120,
+            120
+        );
+
+        pdf.setLineWidth(
+            0.3
+        );
+
+
+        pdf.rect(
+            x,
+            y,
+            width,
+            height
+        );
+    }
+}
